@@ -1,0 +1,89 @@
+vc++中.dll与.lib文件的生成与使用的详解
+--------------------------------------------------------------------------------
+两种库：
+?　　包含了函数所在的DLL文件和文件中函数位置的信息（入口），代码由运行时加载在进程空间中的DLL提供，称为动态链接库dynamic link library。
+?　　包含函数代码本身，在编译时直接将代码加入程序当中，称为静态链接库static link library。
+共有两种链接方式：
+?　　动态链接使用动态链接库，允许可执行模块（.dll文件或.exe文件）仅包含在运行时定位DLL函数的可执行代码所需的信息。
+?　　静态链接使用静态链接库，链接器从静态链接库LIB获取所有被引用函数，并将库同代码一起放到可执行文件中。
+
+--------------------------------------------------------------------------------
+两种文件的区别
+--------------------------------------------------------------------------------
+使用lib需注意两个文件：
+?.h头文件，包含lib中说明输出的类或符号原型或数据结构。应用程序调用lib时，需要将该文件包含入应用程序的源文件中。
+?.LIB文件。
+使用dll需注意三个文件：
+?.h头文件，包含dll中说明输出的类或符号原型或数据结构的.h文件。应用程序调用dll时，需要将该文件包含入应用程序的源文件中。
+?.LIB文件，是dll在编译、链接成功之后生成的文件，作用是当其他应用程序调用dll时，需要将该文件引入应用程序，否则产生错误（如果不想用lib文件或者没有lib文件，可以用WIN32 API函数LoadLibrary、GetProcAddress装载）。
+?dll文件，真正的可执行文件，开发成功后的应用程序在发布时，只需要有.exe文件和.dll文件，并不需要.lib文件和.h头文件。
+
+--------------------------------------------------------------------------------
+生成和使用方法
+--------------------------------------------------------------------------------
+操作系统：WIN7
+开发软件：VS2010
+--------------------------------------------------------------------------------
+1.生成lib文件
+　　首先，我们先建立一个控制台工程(新建->工程->控制台程序)，添加add.cpp以及add.h文件。
+复制代码 代码如下:
+
+//sub.h
+#ifndef _SUB_H
+#define _SUB_H
+void sub(int a,int b);
+#endif
+//sub.cpp
+#include "sub.h"
+#include <iostream>
+void sub(int a,int b)
+{
+    std::cout<<(a-b)<<std::endl;
+}
+　　由于在工程中，没有main()函数，所以直接编译出错。这时，要右键点击工程，并选择工程属性，出现下图，选择静态链接库即可。
+
+　　这时候再按F7，build solution即可产生lib文件。在Debug中只生成.lib文件。
+
+2.生成dll文件
+　　生成dll文件的过程与上面的过程是一样的，只是在选择Dynamic Library(.dll)即可。在Debug中会生成一个.lib和.dll两种文件。
+--------------------------------------------------------------------------------
+3.两种文件的使用
+　　在使用时，静态链接库只要把.h和.lib文件加入到工程文件夹中即可。而动态链接库要把.h、.lib和.dll文件加入到工程中。
+复制代码 代码如下:
+
+#include <iostream>
+#include "sub.h"  //链接库的头文件
+using namespaces std;
+#pragma comment(lib,"sub.lib") //加入链接库
+int main()
+{
+    sub(5,4);
+    return 0;
+}
+
+4.仅有.dll文件时候的使用方法
+　　在没有.h和.lib文件时，需要函数指针和WIN32 API函数LoadLibrary、GetProcAddress装载，只需要.dll文件即可（将.dll文件置入工程目录中）。
+复制代码 代码如下:
+
+#include <iostream>
+#include <windows.h>               //使用函数和某些特殊变量
+typedef void (*DLLFunc)(int,int);  //确定调用函数的形参
+int main()
+{
+    DLLFunc dllFunc;
+    HINSTANCE hInstLibrary = LoadLibrary("sub.dll");//加载.dll
+    if (hInstLibrary == NULL)
+    {
+        FreeLibrary(hInstLibrary);
+    }
+    dllFunc = (DLLFunc)GetProcAddress(hInstLibrary, "sub");//第二个参数为要调用的函数名称
+    if (dllFunc == NULL)
+    {
+        FreeLibrary(hInstLibrary);
+    }
+    dllFunc(5,4);
+    FreeLibrary(hInstLibrary);
+    return(1);
+}
+
+ 　　最近一直在搞API这东西，用了curl、tinyxml和jsoncpp几种开源的库，在linux下使用倒是很方便，在windows下还是自己编译的遇到了点问题，从新整理学习下，备用~~

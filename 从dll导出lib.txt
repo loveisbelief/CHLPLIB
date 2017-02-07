@@ -1,0 +1,94 @@
+从dll导出lib
+标签： dlllibrary工具file汇编date
+2010-03-18 22:30 18103人阅读 评论(30) 收藏 举报
+ 分类： C/C++（15）  
+版权声明：本文为博主原创文章，未经博主允许不得转载。
+
+版权声明
+
+本文为原创作品，请尊重作者的劳动成果。转载必须保持文章完整性，并以超链接形式注明原始作者“tingsking18”和主站点地址，方便其他朋友提问和指正。
+
+ 
+
+ 
+
+一、使用VC++的工具DUMPBIN将DLL中的导出函数表导出到一定义(.DEF)文件
+EXAMPLE：
+
+DUMPBIN VideoDeCoder.dll /EXPROTS /OUT:VideoDeCoder.def
+ 二、将导出的.DEF文件整理为一符合.DEF个数的函数导出文件
+EXAMPLE：VideoDeCoder.DEF 文件内容如下Dump of file VideoDeCoder.dll                                  
+                                                                       
+        File Type: DLL                                                 
+                                                                       
+          Section contains the following exports for VideoDeCoder.dll  
+                                                                       
+                   0 characteristics                                   
+            3D49E48F time date stamp Fri Aug 02 09:46:55 2002          
+                0.00 version                                           
+                   1 ordinal base                                      
+                  11 number of functions                               
+                  11 number of names                                   
+                                                                       
+            ordinal hint RVA      name                                 
+                                                                       
+                  1    0 00010F60 _TM_ClearDecoderBuff@4               
+                  2    1 00010E80 _TM_CloseDecoder@4                   
+                  3    2 00010F00 _TM_DecodePicture@4                  
+                  4    3 00010ED0 _TM_DecodePictureHeader@4            
+                  5    4 00010FD0 _TM_GetFileEnd@4                     
+                  6    5 00011030 _TM_GetUValue@4                      
+                  7    6 00011060 _TM_GetVValue@4                      
+                  8    7 00011000 _TM_GetYValue@4                      
+                  9    8 00010E10 _TM_OpenDecoder@8                    
+                 10    9 00010F30 _TM_ReturnType@4                     
+                 11    A 00010F90 _TM_SetFileEnd@8                     
+                                                                       
+          Summary                                                      
+                                                                       
+                2000 .data                                             
+                1000 .rdata                                            
+                1000 .reloc                                            
+               15000 .text 
+按照以下方法整理:
+1)添加LIB说明 LIBRARY "VideoDeCoder"            ;"xx"为DLL名称
+DESCRIPTION "VideoDeCoder library"  
+2)去掉导出函数说明端以外的内容,在LIB说明下添加 "EXPROTS" 说明导出函数 LIBRARY "VideoDeCoder"
+DESCRIPTION "VideoDeCoder library"
+
+EXPORTS
+            ordinal hint RVA      name                          
+                                                                
+                  1    0 00010F60 _TM_ClearDecoderBuff@4            
+                  2    1 00010E80 _TM_CloseDecoder@4            
+                  3    2 00010F00 _TM_DecodePicture@            
+                  4    3 00010ED0 _TM_DecodePictureH            
+                  5    4 00010FD0 _TM_GetFileEnd@4              
+                  6    5 00011030 _TM_GetUValue@4               
+                  7    6 00011060 _TM_GetVValue@4               
+                  8    7 00011000 _TM_GetYValue@4               
+                  9    8 00010E10 _TM_OpenDecoder@8             
+                 10    9 00010F30 _TM_ReturnType@4              
+                 11    A 00010F90 _TM_SetFileEnd@8 
+3)将所有的函数放至行首,去掉 "hint" 和 "RVA" 数据,留下函数的序号 "ordinal" ,在序号前加上 "@" 符号 形成 "_导出函数名@参数字节和 @序号" 此种格式(__stdcall 方式调用导出的函数符号是 "函数名称@参数字节和"). 最后形成.DEF文件如下: LIBRARY "VideoDeCoder"
+  DESCRIPTION "VideoDeCoder library"
+
+  EXPORTS
+      
+  TM_ClearDecoderBuff@4             @1    
+  TM_CloseDecoder@4                 @2    
+  TM_DecodePicture@4                @3    
+  TM_DecodePictureHeader@4          @4    
+  TM_GetFileEnd@4                   @5    
+  TM_GetUValue@4                    @6    
+  TM_GetVValue@4                    @7    
+  TM_GetYValue@4                    @8    
+  TM_OpenDecoder@8                  @9    
+  TM_ReturnType@4                  @10    
+  TM_SetFileEnd@8                  @11 
+ 三、使用VC++的LIB工具,带/DEF:(.def文件名) /MACHINE:IX86(80X86机器),就输出符合VC++格式的的LIB文件了. 
+EXAMPLE:LIB /DEF:VideoDeCoder.def /MACHINE:IX86
+ 四、接时带上LIB文件链接;注意的是当有些动态库DUMPBIN的只有函数名,无"@nn"的参数格式,如C++Builder写的DLL,输出就只有函数名符号,链接时就会报错: error LNK2002:unresolved external symbol "functionname@nn" 提示程序中引入的函数符号无法识别,这时只要将DEF文件中相应的函数名称改为functionname@nn方式,重新建立 LIB,重新链接即可.
+
+最后还有一句，要自动生成.h文件好象是不行的．因为dll里没有保存函数原型，需要反汇编并分析代码才知道每个函数的参数情况．
+
