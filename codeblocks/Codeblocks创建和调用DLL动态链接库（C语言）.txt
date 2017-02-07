@@ -1,0 +1,81 @@
+Codeblocks创建和调用DLL动态链接库（C语言）
+2012-11-15 16:39 12841人阅读 评论(1) 收藏 举报
+ 分类： c语言（2）  
+版权声明：本文为博主原创文章，未经博主允许不得转载。
+来源：http://hi.baidu.com/hellosim/item/9ae4317168f4a74bee1e53cb
+建立一个最简单的只有一个get_id() 函数的DLL库
+ 一、创建C语言动态链接库
+1.新建一个动态库的工程
+File - New - Project - DLL - Go
+新建的工程原来的main.cpp和main.h删除，新建两个文件simple.h, simple.c添加进工程
+注意默认是cpp文件，我们做C库，要用C文件
+ 
+simple.h
+#ifndef SIMPLE_H_INCLUDED
+#define SIMPLE_H_INCLUDED
+#ifdef BUILD_DLL
+    #define DLL_EXPORT __declspec(dllexport)
+#else
+    #define DLL_EXPORT __declspec(dllimport)
+#endif
+int DLL_EXPORT get_id(void);
+int DLL_EXPORT add(int,int);
+#endif // SIMPLE_H_INCLUDED
+simple.c
+#include "simple.h"
+int DLL_EXPORT get_id(void)
+{
+    return 10;
+}
+int DLL_EXPORT add(int x,int y)
+{
+    return x+y;
+}
+ 
+然后编译，成功后在bin\Debug目录下生成3个文件：libsimple.dll.a， simple.dll，libsimple.dll.def
+ 二、动态链接库调用
+1、隐式调用
+1）建立一个test的工程File - New - Project - Console application - Go - 选择 c删除main.h，把库的test.h复制到工程中，现在就有main.c 和test.h
+main.c
+#include <stdio.h>
+#include "simple.h"
+int main()
+{
+    printf("id = %d\n",  get_id() );
+    printf("id = %d\n",  add(1,2) );
+system("pause");
+    return 0;
+}
+ 
+
+simple.h跟上面一样
+2）把dll库添加到工程中
+将刚刚生成的两个文件libsimple.a，  libsimple.dll复制到test工程的bin\Debug目录下
+Project - Build options - 左上角默认是Debug，不选这个，选上面那个test - Linker settings - Add 选择 bin\Debug\libsimple.dll.a - 确定,编译成功即可。
+2、显示调用
+ 
+1）建立一个test1的工程File - New - Project - Console application - Go - 选择 编辑main.h，
+main.c
+#include <stdio.h>
+#include <windows.h>
+typedef int(*lpGet_id)(void); //定义函数类型
+typedef int(*lpAdd)(int,int); //定义函数类型
+HINSTANCE hDll; //DLL句柄
+lpGet_id get_id;
+lpAdd add;
+int main()
+{
+    hDll = LoadLibrary("simple.dll"); //加载 dll
+    get_id = (lpGet_id)GetProcAddress(hDll, "get_id");//通过指针获取函数方法
+    add = (lpAdd)GetProcAddress(hDll, "add");//通过指针获取函数方法
+    printf("id = %d\n",  get_id() );//调用函数
+    printf("id = %d\n",  add(1,2) );//调用函数
+    FreeLibrary(hDll);//释放Dll句柄
+    system("pause");
+    return 0;
+}
+
+simple.h跟上面一样
+2）把dll库添加到工程中
+将刚刚生成的两个文件libsimple.dll复制到test工程的bin\Debug目录下
+编译成功即可。

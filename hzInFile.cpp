@@ -13,15 +13,20 @@ void  hzInFile (CString FileName)
 	{
 		c1=(unsigned char ) fgetc(in);	// 转换为无符号字符
 		if(c1<128)
+		{
 			continue;	// 不处理单字节西文字符
-		if(c1<176)
+		}
+		else if(c1<176)
 		{
 			c2=fgetc(in);
 			continue; 
 		} // 也不处理非汉字字符，但要多读一个字节
-		c2=(unsigned char ) fgetc(in);	// 读入汉字的第二个字节
-		id=HZ_ID(c1,c2);	// 计算该汉字的下标
-		HZFreq[id]++;		// 给该汉字的频度加1
+		else
+		{
+			c2=(unsigned char ) fgetc(in);	// 读入汉字的第二个字节
+			id=HZ_ID(c1,c2);	// 计算该汉字的下标
+			HZFreq[id]++;		// 给该汉字的频度加1
+		}
 	}
 	fclose(in);
 	return;

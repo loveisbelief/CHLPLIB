@@ -1,0 +1,55 @@
+CodeBlocks创建和使用共享库
+2012-11-16 10:19 1641人阅读 评论(0) 收藏 举报
+ 分类： c语言（2）  
+版权声明：本文为博主原创文章，未经博主允许不得转载。
+建立一个最简单的只有一个get_id() 函数的DLL库
+ 一、创建C语言共享库1.新建一个动态库的工程
+File - New - Project - Shared library - Go
+编辑main.c 
+main.c
+int add(int i1, int i2)
+{
+    return i1 + i2;
+}
+ 
+然后编译，成功后在bin\Debug目录下生成3个文件：libtest6.dll,libtest6.dll.a,libtest6.dll.def
+ 二、动态链接库调用
+1、隐式调用
+1）建立一个test的工程File - New - Project - Console application - Go - 选择 c删除main.h，把库的test.h复制到工程中，现在就有main.c 和test.h
+main.c
+#include <stdio.h>
+#include <stdlib.h>
+int add(int, int);//直接申明函数原型
+int main()
+{
+    printf("%d\n",add(1,2));
+    system("pause");
+    return 0;
+}
+ 
+2）把dll库添加到工程中
+将刚刚生成的两个文件libtest6.dll.a，  libtest6.dll复制到test工程的bin\Debug目录下
+Project - Build options - 左上角默认是Debug，不选这个，选上面那个test - Linker settings - Add 选择 bin\Debug\libtest6.dll.a - 确定,编译成功即可。
+2、显示调用
+ 
+1）建立一个test1的工程File - New - Project - Console application - Go - 选择 编辑main.h，
+main.c
+#include <stdio.h>
+#include <windows.h>
+typedef int(*lpAdd)(int,int); //定义函数类型
+HINSTANCE hDll; //DLL句柄
+lpAdd add;
+int main()
+{
+    hDll = LoadLibrary(" libtest6.dll"); //加载 dll
+    add = (lpAdd)GetProcAddress(hDll, "add");//通过指针获取函数方法
+    printf("id = %d\n",  add(1,2) );//调用函数
+    FreeLibrary(hDll);//释放Dll句柄
+    system("pause");
+    return 0;
+}
+
+simple.h跟上面一样
+2）把dll库添加到工程中
+将刚刚生成的两个文件 libtest6.dll复制到test工程的bin\Debug目录下
+编译成功即可。
