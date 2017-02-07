@@ -1,0 +1,105 @@
+在VS中创建和使用DLL动态链接库
+
+VS中使用动态链接库较GCC略微复杂
+
+在VS中新建工程时建立dll工程
+在dll工程的头文件中加入如下宏
+
+#ifdef DLL_IMPLEMENT_
+#define DLL_APL __declspec(dllexport)
+#else
+#define DLL_API __declspec(dllimport)
+#endif
+__declspec(dllimport)和__declspec(dllexport)声明了某一对象的导入/导出属性
+
+在dll的实现文件头部使用宏将其声明为dll内部的实现
+
+#define DLL_IMPLEMENT_
+如使用dll的工程和dll工程同属一个解决方案，在解决方案的属性中设置好工程的依赖关系，在使用dll的工程的属性中设置好头文件和库文件的路径，即可直接编译运行，需要注意的是，VS编译使用dll的程序时，依然需要该dll对应的lib文件，和gcc直接可以连接动态库有所不同
+可以将一个dll的相关内容包含在一个命名空间里，由于命名空间的定义可以不连续，这样也不会对实现和接口的分离造成什么麻烦
+
+程序例子
+
+DLL头文件： DLLtest.h
+
+#ifndef _TEST_H_
+#define _TEST_H_
+
+#ifdef DLL_IMPLEMENT_
+#define DLL_API __declspec(dllexport)
+#else
+#define DLL_API __declspec(dllimport)
+#endif
+
+namespace dll
+{
+    int DLL_API add(const int &a, const int &b);
+    int DLL_API sub(const int &a, const int &b);
+    int DLL_API mul(const int &a, const int &b);
+    int DLL_API div(const int &a, const int &b);
+}
+
+#endif
+DLL实现文件：DLLtest.cpp
+
+#define DLL_IMPLEMENT_
+#include "test.h"
+
+namespace dll
+{
+    int add(const int &a, const int &b)
+    {
+        return a + b;
+    }
+
+    int sub(const int &a, const int &b)
+    {
+        return a - b;
+    }
+
+    int mul(const int &a, const int &b)
+    {
+        return a * b;
+    }
+
+    int div(const int &a, const int &b)
+    {
+        return a / b;
+    }
+}
+应用程序:entry.cpp
+
+#include "test.h"
+#include <iostream>
+
+#pragma comment(lib, "DLLtest.lib")
+
+using namespace std;
+using namespace dll;
+
+int main()
+{
+    int a, b;
+    char c;
+    while( cin >> a >> c >> b )
+    {
+        switch( c )
+        {
+        case '+':
+            cout << add(a, b) << endl;
+            break;
+        case '-':
+            cout << sub(a, b) << endl;
+            break;
+        case '*':
+            cout << mul(a, b) << endl;
+            break;
+        case '/':
+            cout << dll:: div(a, b) << endl;
+            break;
+        default:
+            cout << '\"' << a << c << b << '\"' << "isn't a valid expression." << endl;
+        }
+    }
+}
+Written with StackEdit.
