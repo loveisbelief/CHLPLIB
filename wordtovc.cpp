@@ -1,3 +1,6 @@
+//æ­¤å¤„ä»£ç å¼•è‡ªhttp://blog.csdn.net/thenile/article/details/6318521#reply
+
+
 #include   <iostream>
 #include   <string>
 using   namespace   std;
@@ -464,7 +467,7 @@ string findLetter(int nCode)
 	case 7684:
 	case 8043:
 	case 8457:
-		strValue = "4337 ËÅ";
+		strValue = "4337 Ã‹Ä¹";
 		break;
 	case 6042:
 	case 6840:
@@ -1638,7 +1641,7 @@ string findLetter(int nCode)
 	case 7918:
 	case 7989:
 	case 8158:
-		strValue = "L¨¹";
+		strValue = "LÂ¨Å¡";
 		break;
 	case 5968:
 	case 6303:
@@ -1669,7 +1672,7 @@ string findLetter(int nCode)
 	case 8639:
 		strValue = "LUAN";
 		break;
-		strValue = "L¨µE";
+		strValue = "LÂ¨Ä¾E";
 		break;
 		strValue = "LUN";
 		break;
@@ -1974,7 +1977,7 @@ string findLetter(int nCode)
 	case 7704:
 	case 7847:
 	case 8412:
-		strValue = "N¨µ";
+		strValue = "NÂ¨Ä¾";
 		break;
 		strValue = "NUAN";
 		break;
@@ -2680,7 +2683,7 @@ string findLetter(int nCode)
 	case 7666:
 		strValue = "TAO";
 		break;
-		strValue = "1845 ²Í";
+		strValue = "1845 Ë›Ã";
 		break;
 	case 6315:
 	case 7693:
